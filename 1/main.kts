@@ -8,7 +8,7 @@ if (!Files.exists(Paths.get(fileName))) error("No such file $fileName")
 
 val input = File(args.elementAt(0)).readText()
 
-//
+// === === === === === === === === === === === === === === === 
 
 val validDigits = arrayOf(
     "1" to "one",
@@ -62,4 +62,7 @@ fun partTwo(input: String): Int {
 			}
 }
 
-partTwo(input)
+println("Part one: ${partOne(input)}")
+println("Part two: ${partTwo(input)}")
+
+0
