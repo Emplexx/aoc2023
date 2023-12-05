@@ -13,11 +13,6 @@ val input = File(fileName).readText()
 
 // --------------------------------
 
-data class MapEntry(
-
-        val len: Int,
-)
-
 data class FrRange(
         val from: Long,
         val to: Long,
