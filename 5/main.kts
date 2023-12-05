@@ -28,6 +28,78 @@ data class FrRange(
     fun elementAt(long: Long): Long {
         return from + long
     }
+
+    val lastIndex get() = to - from
+}
+
+data class MultiRange(
+        val ranges: List<FrRange>,
+        val rawStart: Long?,
+        val rawEnd: Long?
+) {
+
+}
+
+fun Pair<FrRange, FrRange>.lowcut(at: Long): Pair<FrRange, FrRange> {
+
+    val indexOfAt = this.first.indexOf(at)
+
+    return this.copy(
+            first.copy(at, first.to),
+            second.copy(second.from + indexOfAt, second.to)
+    )
+
+}
+
+fun Pair<FrRange, FrRange>.highcut(at: Long): Pair<FrRange, FrRange> {
+
+    val indexOfAt = this.first.indexOf(at)
+    val remove = this.first.lastIndex - indexOfAt
+
+    return this.copy(
+            first.copy(first.from, first.to - remove),
+            second.copy(second.from, second.to - remove)
+    )
+
+}
+
+fun Map<FrRange, FrRange>.getMulti(range: MultiRange): MultiRange {
+    
+}
+
+fun Map<FrRange, FrRange>.getMulti(range: FrRange): MultiRange {
+
+    val start = this.entries
+            .indexOfFirst { range.from in it.key }
+
+    val end = this.entries
+            .indexOfFirst { range.to in it.key }
+
+    val l = buildList<FrRange> {
+
+        if (start != -1 && start == end) {
+            val newStart = this@getMulti.entries.elementAt(start).toPair()
+                .lowcut(range.from).highcut(range.to)
+            add(newStart.second)
+            return@buildList
+        }
+
+        if (start != -1) {
+            val newStart = this@getMulti.entries.elementAt(start).toPair().lowcut(range.from)
+            add(newStart.second)
+        }
+        if (end != -1) {
+            val newEnd = this@getMulti.entries.elementAt(end).toPair().highcut(range.to)
+            add(newEnd.second)
+        }
+    }
+
+    return MultiRange(
+            ranges = l,
+            rawStart = range.from,
+            rawEnd = range.to,
+    )
+
 }
 
 fun Map<FrRange, FrRange>.getOrSame(single: Long): Long {
@@ -61,6 +133,9 @@ fun inputToMap(input: String, name: String): Map<FrRange, FrRange> {
     }
 }
 
+fun Map<FrRange, FrRange>.sortMap(): Map<FrRange, FrRange> =
+        this.entries.sortedBy { it.key.from }.associate { it.key to it.value }
+
 fun partOne(input: String): Long {
 
     val seeds = input.lines()[0].split(' ').mapNotNull { it.toLongOrNull() }
@@ -84,23 +159,41 @@ fun partOne(input: String): Long {
     }.toLong()
 }
 
-//fun partTwo(input: String): Long {
-//
-//    val seedToSoil = inputToMap(input, "seed-to-soil")
-//    val soilToFertilizer = inputToMap(input, "soil-to-fertilizer")
-//    val fertilizerToWater = inputToMap(input, "fertilizer-to-water")
-//    val waterToLight = inputToMap(input, "water-to-light")
-//    val lightToTemperature = inputToMap(input, "light-to-temperature")
-//    val temperatureToHumidity = inputToMap(input, "temperature-to-humidity")
-//    val humidityToLocation = inputToMap(input, "humidity-to-location")
-//
-//
-//    val seeds = input.lines()[0].split(' ').mapNotNull { it.toLongOrNull() }
-//   val seq =  seeds.zipWithNext().map { (from, to) ->
+fun partTwo(input: String): Long {
+
+    val seedToSoil = inputToMap(input, "seed-to-soil").sortMap()
+    val soilToFertilizer = inputToMap(input, "soil-to-fertilizer").sortMap()
+    val fertilizerToWater = inputToMap(input, "fertilizer-to-water").sortMap()
+    val waterToLight = inputToMap(input, "water-to-light").sortMap()
+    val lightToTemperature = inputToMap(input, "light-to-temperature").sortMap()
+    val temperatureToHumidity = inputToMap(input, "temperature-to-humidity").sortMap()
+    val humidityToLocation = inputToMap(input, "humidity-to-location").sortMap()
+
+
+    val seeds = input.lines()[0].split(' ').mapNotNull { it.toLongOrNull() }
+    val seedRanges = seeds.chunked(2)
+        .map { it[0] to it[1] }
+        .map { FrRange(it.first, it.first + it.second - 1) }
+
+    println("soil")
+    val try1 = seedRanges.map { range ->
+        println("seed range $range")
+        seedToSoil.getMulti(range).also {
+            println("multirange $it")
+        }
+    }
+
+    println("fert")
+    val try2 = try1.map { mrange ->
+        println("seed range $range")
+        soilToFertilizer.
+    }
+
+
+//    val seq =  seeds.zipWithNext().map { (from, to) ->
 //        generateSequence(from) { if (it == from + to) null else it + 1 }
-//        
 //    }
-//    
+
 //    val locations = mutableListOf<Long>()
 //    var current: Sequence<Long>? = null
 //    seq.forEach { sequence ->
@@ -117,14 +210,15 @@ fun partOne(input: String): Long {
 //        }
 //        current = null
 //    }
-//    
-//    return locations.min()
-//    
 //
-//}
+//    return locations.min()
 
-println("Part one: ${partOne(input)}")
-//println("Part two: ${partTwo(input)}")
+
+    return 0
+}
+
+//println("Part one: ${partOne(input)}")
+println("Part two: ${partTwo(input)}")
 
 
 // Implementation with Kotlins LongRange which was unbelievably slow
