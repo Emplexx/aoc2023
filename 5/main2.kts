@@ -9,6 +9,8 @@ if (!Files.exists(Paths.get(fileName))) error("No such file $fileName")
 val input = File(fileName).readText()
 
 // --------------------------------
+// only """solved""" this thanks to this reference:
+// https://github.com/Sheinxy/Advent-Of-Code/blob/main/2023/Day_05/Day_05.hs
 
 data class Input(
 	val seeds: List<Pair<Long, Long>>,
